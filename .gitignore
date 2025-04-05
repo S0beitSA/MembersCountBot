@@ -1,5 +1,4 @@
 node_modules/
-baileys_auth_info/
 *.log
 .env
 *.db

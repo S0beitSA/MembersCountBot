@@ -1,6 +1,7 @@
 import { makeWASocket, useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
 import schedule from 'node-schedule';
-import { CONFIG, handleGroupOperation, handleParticipantCount } from './src/bot.js';
+import { CONFIG, handleGroupOperation, handleParticipantCount, registerParticipantEvents, updateGroupList } from './src/bot.js';
+import { initializeNewDay } from './src/db.js';
 import fs from 'fs';
 import './src/bot.js'; 
 
@@ -16,7 +17,7 @@ const startBot = async () => {
     const { state, saveCreds } = await useMultiFileAuthState('baileys_auth_info');
     const sock = makeWASocket({ auth: state, printQRInTerminal: true });
 
-    sock.ev.on("connection.update", (update) => {
+    sock.ev.on("connection.update", async (update) => {
         const { connection, lastDisconnect } = update;
         if (connection === "close") {
             const shouldReconnect =
@@ -38,11 +39,21 @@ const startBot = async () => {
         } else if (connection === "open") {
             console.log("opened connection");
 
+            await updateGroupList(sock);
+
+            registerParticipantEvents(sock);
+
             CONFIG.scheduleTime.forEach((time) => {
                 schedule.scheduleJob(time, async () => {
                     console.log(`Executando contagem de participantes no horário agendado: ${time}`);
-                    await handleParticipantCount(sock);
+                    await handleParticipantCount(sock); 
                 });
+            });
+
+            schedule.scheduleJob(CONFIG.resetTime, () => {
+                const newDate = new Date().toLocaleDateString('pt-BR');
+                console.log('Inicializando contadores para o novo dia...');
+                initializeNewDay(newDate);
             });
         }
     });
@@ -60,6 +71,11 @@ const startBot = async () => {
 
                     case CONFIG.commands.select:
                         await handleGroupOperation(sock, chatId, CONFIG.operations.select); 
+                        break;
+
+                    case CONFIG.commands.updateGroups:
+                        await updateGroupList(sock);
+                        await sock.sendMessage(chatId, { text: 'Lista de grupos atualizada com sucesso!' });
                         break;
                 }
             }
