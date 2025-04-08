@@ -151,7 +151,7 @@ export const getDailyCounters = (date) => {
 export const initializeNewDay = (date) => {
     const now = new Date().toISOString();
     const stmt = db.prepare(`
-        INSERT INTO daily_counters (group_id, date, entries, exits, created_at)
+        INSERT OR IGNORE INTO daily_counters (group_id, date, entries, exits, created_at)
         SELECT id, ?, 0, 0, ? 
         FROM groups
     `);
