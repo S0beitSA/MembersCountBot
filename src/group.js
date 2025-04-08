@@ -8,7 +8,7 @@ export const fetchGroupMetadata = async (sock, groupId) => {
             return metadata;
         } catch (error) {
             attempts++;
-            console.error(`Erro ao buscar metadados do grupo ${groupId} (tentativa ${attempts}):`, error);
+            console.log(`Erro ao buscar metadados do grupo ${groupId} (tentativa ${attempts}):`, error);
             console.log(`Aguardando 5 segundos antes de tentar novamente...`);
             await delay(5000);
         }

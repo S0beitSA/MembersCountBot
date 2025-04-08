@@ -32,7 +32,7 @@ const sendMessageWithRetry = async (sock, groupId, messageContent, groupName = '
             break;
         } catch (error) {
             attempts++;
-            console.error(`Erro ao enviar mensagem para o grupo ${groupName || groupId} (tentativa ${attempts}):`, error);
+            console.log(`Erro ao enviar mensagem para o grupo ${groupName || groupId} (tentativa ${attempts}):`, error);
             console.log('Aguardando 5 segundos antes de tentar novamente...');
             await delay(5000);
         }
@@ -74,8 +74,7 @@ export const updateGroupList = async (sock) => {
         console.log('Atualização de grupos concluída');
         return getAllGroups();
     } catch (error) {
-        console.error('Erro ao atualizar lista de grupos:', error);
-        throw error;
+        console.log('Erro ao atualizar lista de grupos:', error);
     }
 };
 
@@ -103,7 +102,7 @@ export const handleParticipantCount = async (sock, chatId = null) => {
                           `Saídas hoje: ${groupCounters.exits}\n`;
 
         } catch (error) {
-            console.error(`Erro ao processar grupo ${group.id}:`, error);
+            console.log(`Erro ao processar grupo ${group.id}:`, error);
         }
     }
 

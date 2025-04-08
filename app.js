@@ -80,11 +80,22 @@ const startBot = async () => {
                 }
             }
         } catch (error) {
-            console.error('Erro no processamento de messages.upsert:', error);
+            console.log('Erro no processamento de messages.upsert:', error);
         }
     });
 
     sock.ev.on("creds.update", saveCreds);
 };
+
+// Nico logs very crazy:
+process.on('uncaughtException', (err) => {
+    console.log('Unhandled Exception:', err);
+    // Optionally, decide if you want to log, perform cleanup, or even restart gracefully
+  });
+  
+  process.on('unhandledRejection', (reason, promise) => {
+    console.log('Unhandled Rejection:', reason);
+    // Optionally, add logic to handle the rejection gracefully
+  });
 
 startBot();

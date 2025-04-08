@@ -42,8 +42,7 @@ export const fetchAndSaveGroups = (groups) => {
     try {
         transaction(groups);
     } catch (error) {
-        console.error('Erro ao salvar grupos:', error);
-        throw error;
+        console.log('Erro ao salvar grupos:', error);
     }
 };
 
