@@ -141,21 +141,32 @@ export const registerParticipantEvents = (sock) => {
         const todayDate = new Date().toLocaleDateString('pt-BR');
         const selectedGroups = getSelectedGroups();
 
-        // Obtém o primeiro grupo selecionado (grupo de relatório)
         const reportGroup = selectedGroups[0];
         if (!reportGroup) return;
 
-        // Obtém os metadados do grupo onde ocorreu o evento
         const groupMetadata = await fetchGroupMetadata(sock, groupId);
         if (!groupMetadata) return;
 
+        const counters = getDailyCounters(todayDate);
+        const groupCounters = counters.find(c => c.group_id === groupId) || { entries: 0, exits: 0 };
+
         if (action === 'add') {
             incrementCounter(groupId, todayDate, 'entries');
-            const welcomeMessage = `🎉 Nova entrada no grupo ${groupMetadata.subject}! Ficamos felizes em ter mais um membro! 🎉`;
+            const welcomeMessage = `🎉 Nova entrada no grupo!\n\n` +
+                                 `Grupo: ${groupMetadata.subject}\n` +
+                                 `Total de Participantes: ${groupMetadata.participants.length}\n` +
+                                 `Entradas hoje: ${groupCounters.entries + 1}\n` +
+                                 `Saídas hoje: ${groupCounters.exits}\n\n` +
+                                 `Ficamos felizes em ter mais um membro! 🎉`;
             await sendMessageWithRetry(sock, reportGroup.id, welcomeMessage);
         } else if (action === 'remove') {
             incrementCounter(groupId, todayDate, 'exits');
-            const goodbyeMessage = `😢 Alguém saiu do grupo ${groupMetadata.subject}! Sentiremos sua falta! 😢`;
+            const goodbyeMessage = `😢 Alguém saiu do grupo!\n\n` +
+                                 `Grupo: ${groupMetadata.subject}\n` +
+                                 `Total de Participantes: ${groupMetadata.participants.length}\n` +
+                                 `Entradas hoje: ${groupCounters.entries}\n` +
+                                 `Saídas hoje: ${groupCounters.exits + 1}\n\n` +
+                                 `Sentiremos sua falta! 😢`;
             await sendMessageWithRetry(sock, reportGroup.id, goodbyeMessage);
         }
     });
