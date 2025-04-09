@@ -137,37 +137,44 @@ export const handleParticipantCount = async (sock, chatId = null) => {
 
 export const registerParticipantEvents = (sock) => {
     sock.ev.on('group-participants.update', async (update) => {
-        const { id: groupId, action, participants } = update;
-        const todayDate = new Date().toLocaleDateString('pt-BR');
-        const selectedGroups = getSelectedGroups();
+        try {
+            const { id: groupId, action, participants } = update;
+            const todayDate = new Date().toLocaleDateString('pt-BR');
+            const selectedGroups = getSelectedGroups();
 
-        const reportGroup = selectedGroups[0];
-        if (!reportGroup) return;
+            const reportGroup = selectedGroups[0];
+            if (!reportGroup) return;
 
-        const groupMetadata = await fetchGroupMetadata(sock, groupId);
-        if (!groupMetadata) return;
+            const groupMetadata = await fetchGroupMetadata(sock, groupId);
+            if (!groupMetadata) return;
 
-        const counters = getDailyCounters(todayDate);
-        const groupCounters = counters.find(c => c.group_id === groupId) || { entries: 0, exits: 0 };
+            const counters = getDailyCounters(todayDate);
+            const groupCounters = counters.find(c => c.group_id === groupId) || { entries: 0, exits: 0 };
 
-        if (action === 'add') {
-            incrementCounter(groupId, todayDate, 'entries');
-            const welcomeMessage = `🎉 Nova entrada no grupo!\n\n` +
-                                 `Grupo: ${groupMetadata.subject}\n` +
-                                 `Total de Participantes: ${groupMetadata.participants.length}\n` +
-                                 `Entradas hoje: ${groupCounters.entries + 1}\n` +
-                                 `Saídas hoje: ${groupCounters.exits}\n\n` +
-                                 `Ficamos felizes em ter mais um membro! 🎉`;
-            await sendMessageWithRetry(sock, reportGroup.id, welcomeMessage);
-        } else if (action === 'remove') {
-            incrementCounter(groupId, todayDate, 'exits');
-            const goodbyeMessage = `😢 Alguém saiu do grupo!\n\n` +
-                                 `Grupo: ${groupMetadata.subject}\n` +
-                                 `Total de Participantes: ${groupMetadata.participants.length}\n` +
-                                 `Entradas hoje: ${groupCounters.entries}\n` +
-                                 `Saídas hoje: ${groupCounters.exits + 1}\n\n` +
-                                 `Sentiremos sua falta! 😢`;
-            await sendMessageWithRetry(sock, reportGroup.id, goodbyeMessage);
+            if (action === 'add') {
+                incrementCounter(groupId, todayDate, 'entries');
+                const welcomeMessage = `🎉 Nova entrada no grupo!\n\n` +
+                                    `Grupo: ${groupMetadata.subject}\n` +
+                                    `Total de Participantes: ${groupMetadata.participants.length}\n` +
+                                    `Entradas hoje: ${groupCounters.entries + 1}\n` +
+                                    `Saídas hoje: ${groupCounters.exits}\n\n` +
+                                    `Ficamos felizes em ter mais um membro! 🎉`;
+                await sendMessageWithRetry(sock, reportGroup.id, welcomeMessage);
+            } else if (action === 'remove') {
+                incrementCounter(groupId, todayDate, 'exits');
+                const goodbyeMessage = `😢 Alguém saiu do grupo!\n\n` +
+                                    `Grupo: ${groupMetadata.subject}\n` +
+                                    `Total de Participantes: ${groupMetadata.participants.length}\n` +
+                                    `Entradas hoje: ${groupCounters.entries}\n` +
+                                    `Saídas hoje: ${groupCounters.exits + 1}\n\n` +
+                                    `Sentiremos sua falta! 😢`;
+                await sendMessageWithRetry(sock, reportGroup.id, goodbyeMessage);
+            }
+        } catch (error) {
+            console.error('Erro ao processar evento de participantes:', error);
+            console.log('Tentando novamente em 5 segundos...');
+            await delay(5000);
+            return registerParticipantEvents(sock);
         }
     });
 };
