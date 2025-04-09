@@ -137,13 +137,26 @@ export const handleParticipantCount = async (sock, chatId = null) => {
 
 export const registerParticipantEvents = (sock) => {
     sock.ev.on('group-participants.update', async (update) => {
-        const { id: groupId, action } = update;
+        const { id: groupId, action, participants } = update;
         const todayDate = new Date().toLocaleDateString('pt-BR');
+        const selectedGroups = getSelectedGroups();
+
+        // Obtém o primeiro grupo selecionado (grupo de relatório)
+        const reportGroup = selectedGroups[0];
+        if (!reportGroup) return;
+
+        // Obtém os metadados do grupo onde ocorreu o evento
+        const groupMetadata = await fetchGroupMetadata(sock, groupId);
+        if (!groupMetadata) return;
 
         if (action === 'add') {
             incrementCounter(groupId, todayDate, 'entries');
+            const welcomeMessage = `🎉 Nova entrada no grupo ${groupMetadata.subject}! Ficamos felizes em ter mais um membro! 🎉`;
+            await sendMessageWithRetry(sock, reportGroup.id, welcomeMessage);
         } else if (action === 'remove') {
             incrementCounter(groupId, todayDate, 'exits');
+            const goodbyeMessage = `😢 Alguém saiu do grupo ${groupMetadata.subject}! Sentiremos sua falta! 😢`;
+            await sendMessageWithRetry(sock, reportGroup.id, goodbyeMessage);
         }
     });
 };
