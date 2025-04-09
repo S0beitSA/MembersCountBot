@@ -158,7 +158,7 @@ export const registerParticipantEvents = (sock) => {
                                     `Total de Participantes: ${groupMetadata.participants.length}\n` +
                                     `Entradas hoje: ${groupCounters.entries + 1}\n` +
                                     `Saídas hoje: ${groupCounters.exits}\n\n` +
-                                    `Ficamos felizes em ter mais um membro! 🎉`;
+                                    `Aeeee! 🎉`;
                 await sendMessageWithRetry(sock, reportGroup.id, welcomeMessage);
             } else if (action === 'remove') {
                 incrementCounter(groupId, todayDate, 'exits');
@@ -167,7 +167,7 @@ export const registerParticipantEvents = (sock) => {
                                     `Total de Participantes: ${groupMetadata.participants.length}\n` +
                                     `Entradas hoje: ${groupCounters.entries}\n` +
                                     `Saídas hoje: ${groupCounters.exits + 1}\n\n` +
-                                    `Sentiremos sua falta! 😢`;
+                                    `F! 😢`;
                 await sendMessageWithRetry(sock, reportGroup.id, goodbyeMessage);
             }
         } catch (error) {
